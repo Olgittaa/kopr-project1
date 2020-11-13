@@ -1,0 +1,28 @@
+Vytvorte klient-server aplikáciu na kopírovanie adresára. Požadované vlastnosti:
+
+- Sťahovanie adresára paralelne
+- pouzivatelom daný počet TCP soketov.
+- iba zo servera na klient
+- 1 súbor cez jeden soket
+- po prenesení posiela tento soket ďalší súbor, ak ešte je ďalší, čo treba posielať
+- sťahovanie je prerušiteľné tak, že sa vypne server alebo klient
+- po opätovnom nadviazaní spojenia, má klient možnosť pokračovať v dokopírovaní od momentu prerušenia
+
+- GUI
+    - progressbar počtu súborov
+    - progressbar veľkosti dát v MB
+    - tlačidlo na začatie kopírovania
+    - tlačidlo na opätovné pokračovanie v kopírovaní
+
+- NIE JE POTREBNE programovať prehľadávač disku
+- nepoužívať vytváranie špeciálnych paketov s hlavičkami,
+    ale cez Socket.getOutputStream().write() po prípadných úvodných dohodách iba dáta.
+    Uzatvorenie streamu sa dá odchytiť cez výnikmku IOException, keď sa zatvorí socket.
+- Program má byť schopný skopírovať aj 1GB stredne veľkých súborov pod 1 minútu
+
+- projekt musí využívať na správu vlákien Executor – nevytvárate vlastné Thread-y
+- >=1 synchronizér
+- odchyťte v úlohe udalosť prerušenia
+- počet vytvorených TCP spojení = počtu soketov zadaných používateľom (pripadne +1 TCP na manažovanie kopírovania)
+
+- ZAKAZANE použitie uspatia vlákna na určitý čas namiesto vhodného sychronizéra
