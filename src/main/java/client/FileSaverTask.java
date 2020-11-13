@@ -19,7 +19,7 @@ public class FileSaverTask implements Runnable {
     private final Socket socket;
     private final ProgressBarTask progressBarTask;
     private final ConcurrentHashMap<String, Long> data;
-    private CountDownLatch counter;
+    private final CountDownLatch counter;
 
     public FileSaverTask(Socket socket, DataInputStream inputStream, ProgressBarTask progressBarTask, ConcurrentHashMap<String, Long> data, CountDownLatch counter) {
         this.socket = socket;
@@ -31,8 +31,8 @@ public class FileSaverTask implements Runnable {
 
     public boolean downloadFiles() throws IOException {
         String s = inputStream.readUTF();
-        log.info(s, socket.getLocalPort());
         if (s.equals(Constants.POISON_PILL.getName())) {
+            log.info("poison.pill");
             return true;
         }
         File file = new File(s);

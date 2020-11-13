@@ -3,7 +3,10 @@ package gui;
 import client.Client;
 import constants.Constants;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ProgressBar;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.input.MouseEvent;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,11 +17,13 @@ public class MainWindowController {
     private Client clientManager;
     private CountDownLatch counter;
     @FXML
-    private Button startButton;
+    private Label numberLabel;
     @FXML
-    private Button finishButton;
+    private Label sizeLabel;
     @FXML
-    private Button pauseButton;
+    private Label totalNumberLabel;
+    @FXML
+    private Label totalSizeLabel;
     @FXML
     private ProgressBar weigthProgressBar;
     @FXML

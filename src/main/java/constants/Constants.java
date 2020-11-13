@@ -9,5 +9,5 @@ public class Constants {
     public static final String SOURCE_DIRECTORY = "/Users/olga_charna/Documents/Учеба/III.Z./kopr/from";
     public static final String DESTINATION_DIRECTORY = "/Users/olga_charna/Documents/Учеба/III.Z./kopr/to";
     public static final File POISON_PILL = new File("poison.pill");
-    public static final int CHUNK_SIZE = 1024;
+    public static final int CHUNK_SIZE = 512 * 512;
 }

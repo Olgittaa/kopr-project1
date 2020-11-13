@@ -15,7 +15,6 @@ import java.util.concurrent.*;
 public class Server {
     private BlockingQueue<File> fileBlockingQueue;
     private long filesSize;
-    private Socket socket;
     private ObjectInputStream dataInputStream;
     private DataOutputStream dataOutputStream;
 
@@ -37,7 +36,7 @@ public class Server {
 
                 String action = dataInputStream.readUTF();
                 log.info(action);
-                int count = 0;
+                int count = dataInputStream.readInt();
                 if (action.equals("CONTINUE")) {
                     data = (ConcurrentHashMap<String, Long>) dataInputStream.readObject();
                 }
@@ -81,8 +80,8 @@ public class Server {
     public void exetuteTasks(ConcurrentHashMap<String, Long> data, int count) {
         try {
             ServerSocket serverSocket = new ServerSocket(Constants.SERVER_PORT);
-            ExecutorService executor = Executors.newFixedThreadPool(4);
-            for (int i = 0; i < 4; i++) {
+            ExecutorService executor = Executors.newFixedThreadPool(count);
+            for (int i = 0; i < count; i++) {
                 Socket socket = serverSocket.accept();
                 DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
                 FileSenderTask fileSenderTask = new FileSenderTask(executor, socket, dataOutputStream, fileBlockingQueue, data);

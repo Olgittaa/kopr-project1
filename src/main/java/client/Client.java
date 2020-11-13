@@ -4,6 +4,7 @@ import constants.Constants;
 import gui.ProgressBarTask;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,14 +24,15 @@ public class Client extends Service<Boolean> {
     private final ProgressBar sizeProgressBar;
     private final ConcurrentHashMap<String, Long> data;
     private final CountDownLatch counter;
+    private final int count;
     private ProgressBarTask progressBarTask;
     private DataInputStream dataInputStream;
     private ObjectOutputStream dataOutputStream;
     private int filesCount;
     private long filesSize;
-    private final int count;
 
-    public Client(ProgressBar numberProgressBar, ProgressBar sizeProgressBar, CountDownLatch counter, int count) {
+    public Client(ProgressBar numberProgressBar, ProgressBar sizeProgressBar,
+                  CountDownLatch counter, int count) {
         this.count = count;
         this.data = readData();
         this.executor = Executors.newFixedThreadPool(count);
@@ -81,7 +83,7 @@ public class Client extends Service<Boolean> {
                     log.info(data.toString());
                     dataOutputStream.writeObject(data);
                 }
-//                dataOutputStream.writeInt(count);
+                dataOutputStream.writeInt(count);
                 dataOutputStream.flush();
                 filesCount = dataInputStream.readInt();
                 filesSize = dataInputStream.readLong();

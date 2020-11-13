@@ -1,21 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="266.0" prefWidth="451.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.MainWindowController">
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.Spinner?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="253.0" prefWidth="451.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.MainWindowController">
     <Button fx:id="startButton" layoutX="32.0" layoutY="212.0" mnemonicParsing="false" onMouseClicked="#onStartButtonClick" text="Start" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="50.0" />
     <Button fx:id="finishButton" layoutX="370.0" layoutY="213.0" mnemonicParsing="false" onMouseClicked="#onFinishButtonClick" text="Finish" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="50.0" />
     <Button fx:id="pauseButton" layoutX="201.0" layoutY="229.0" mnemonicParsing="false" onMouseClicked="#onPauseButtonClick" prefHeight="27.0" prefWidth="56.0" text="Pause" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="201.0" AnchorPane.rightAnchor="194.0" />
-    <ProgressBar fx:id="weigthProgressBar" layoutX="10.0" layoutY="146.0" prefHeight="20.0" prefWidth="431.0" progress="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="146.0" />
-    <ProgressBar fx:id="numberProgressBar" layoutX="10.0" layoutY="90.0" prefHeight="20.0" prefWidth="431.0" progress="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="90.0" />
+    <ProgressBar fx:id="weigthProgressBar" layoutX="10.0" layoutY="148.0" prefHeight="20.0" prefWidth="431.0" progress="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="148.0" />
+    <ProgressBar fx:id="numberProgressBar" layoutX="10.0" layoutY="90.0" prefHeight="20.0" prefWidth="381.0" progress="0.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="90.0" />
     <Label layoutX="168.0" layoutY="73.0" text="Number of copied files" AnchorPane.leftAnchor="168.0" AnchorPane.topAnchor="73.0" />
-    <Label layoutX="170.0" layoutY="128.0" text="Size of copied files" AnchorPane.leftAnchor="170.0" AnchorPane.topAnchor="128.0" />
+    <Label layoutX="170.0" layoutY="130.0" text="Size of copied files" AnchorPane.leftAnchor="170.0" AnchorPane.topAnchor="130.0" />
     <Label layoutX="7.0" layoutY="12.0" text="From directory" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0" />
     <Label layoutX="7.0" layoutY="44.0" text="To directory" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="40.0" />
     <Label fx:id="fromDirLabel" layoutX="124.0" layoutY="12.0" prefHeight="17.0" prefWidth="310.0" text="fromDir" AnchorPane.leftAnchor="110.0" AnchorPane.topAnchor="10.0" />
     <Label fx:id="toDirLabel" layoutX="124.0" layoutY="44.0" prefHeight="17.0" prefWidth="310.0" text="toDir" AnchorPane.leftAnchor="110.0" AnchorPane.topAnchor="40.0" />
-    <Label layoutX="10.0" layoutY="190.0" text="TCP sockets:" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="190.0" />
-    <Label layoutX="275.0" layoutY="190.0" text="Port:" AnchorPane.rightAnchor="150.0" AnchorPane.topAnchor="190.0" />
-    <Label fx:id="portLabel" layoutX="310.0" layoutY="185.0" prefHeight="27.0" prefWidth="131.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="185.0" />
-    <Spinner fx:id="tcpSpinner" layoutX="90.0" layoutY="185.0" AnchorPane.leftAnchor="90.0" AnchorPane.topAnchor="185.0" />
+    <Label layoutX="10.0" layoutY="182.0" text="TCP sockets:" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="182.0" />
+    <Label layoutX="275.0" layoutY="182.0" text="Port:" AnchorPane.rightAnchor="150.0" AnchorPane.topAnchor="182.0" />
+    <Label fx:id="portLabel" layoutX="310.0" layoutY="177.0" prefHeight="27.0" prefWidth="131.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="177.0" />
+    <Spinner fx:id="tcpSpinner" layoutX="90.0" layoutY="177.0" AnchorPane.leftAnchor="90.0" AnchorPane.topAnchor="177.0" />
 </AnchorPane>

@@ -10,9 +10,6 @@ public class ClientGUI extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        System.out.println("Total Memory (in bytes): " + Runtime.getRuntime().totalMemory());
-        System.out.println("Free Memory (in bytes): " + Runtime.getRuntime().freeMemory());
-        System.out.println("Max Memory (in bytes): " + Runtime.getRuntime().maxMemory());
         Parent root = FXMLLoader.load(getClass().getResource("mainWindow.fxml"));
         primaryStage.setTitle("DirCopy");
         primaryStage.setScene(new Scene(root));

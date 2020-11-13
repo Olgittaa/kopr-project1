@@ -18,7 +18,8 @@ public class ProgressBarTask {
     private final AtomicLong fileSize;
 
     public ProgressBarTask(ProgressBar numberBar, ProgressBar sizeBar,
-                           AtomicInteger files, AtomicLong fileSize, ConcurrentHashMap<String, Long> data) {
+                           AtomicInteger files, AtomicLong fileSize,
+                           ConcurrentHashMap<String, Long> data) {
         this.files = files;
         this.fileSize = fileSize;
         this.sizeBar = sizeBar;
@@ -28,7 +29,8 @@ public class ProgressBarTask {
     }
 
     public synchronized void updateNumberBar() {
-        numberBar.setProgress((double) sendedFiles.incrementAndGet() / files.get());
+        int file = sendedFiles.incrementAndGet();
+        numberBar.setProgress((double) file / files.get());
     }
 
     public void getSendedSize() {
@@ -48,4 +50,5 @@ public class ProgressBarTask {
         sendedSize.getAndAdd(size);
         sizeBar.setProgress((double) sendedSize.get() / fileSize.get());
     }
+
 }
