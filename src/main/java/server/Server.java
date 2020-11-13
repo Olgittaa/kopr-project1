@@ -40,11 +40,8 @@ public class Server {
 
                 if (action.equals("CONTINUE")) {
                     data = (ConcurrentHashMap<String, Long>) dataInputStream.readObject();
-                    assert data != null;
-                    log.info(data.toString());
                 }
-
-                getLists(new File(Constants.SOURCE_DIRECTORY));
+                getLists(new File(Constants.SOURCE_DIRECTORY), data);
                 sendDataForBar();
                 exetuteTasks(data);
                 managerSocket.close();
@@ -63,7 +60,7 @@ public class Server {
         }
     }
 
-    public void getLists(File rootDir) {
+    public void getLists(File rootDir, ConcurrentHashMap<String, Long> data) {
         File[] files = rootDir.listFiles();
         fileBlockingQueue = new LinkedBlockingQueue<>();
         assert files != null;

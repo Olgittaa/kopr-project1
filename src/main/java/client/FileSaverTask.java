@@ -4,7 +4,10 @@ import constants.Constants;
 import gui.ProgressBarTask;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.*;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,31 +29,24 @@ public class FileSaverTask implements Runnable {
         this.counter = counter;
     }
 
-    public boolean downloadFiles() {
-        try {
-            String s = inputStream.readUTF();
-            log.info(s, socket.getLocalPort());
-            if (s.equals(Constants.POISON_PILL.getName())) {
-                return true;
-            }
-            File file = new File(s);
-            new File(String.valueOf(file.getParentFile())).mkdirs();
-            writeBytes(file, inputStream);
-            progressBarTask.updateNumberBar();
-        } catch (EOFException e) {
-//            log.warn("eoef", socket.getLocalPort());
-        } catch (IOException e) {
-            e.printStackTrace();
+    public boolean downloadFiles() throws IOException {
+        String s = inputStream.readUTF();
+        log.info(s, socket.getLocalPort());
+        if (s.equals(Constants.POISON_PILL.getName())) {
+            return true;
         }
+        File file = new File(s);
+        new File(String.valueOf(file.getParentFile())).mkdirs();
+        writeBytes(file, inputStream);
+        progressBarTask.updateNumberBar();
         return false;
     }
 
-    private void writeBytes(File file, DataInputStream inputStream) {
-        RandomAccessFile raf;
-        try {
-            raf = new RandomAccessFile(file, "rws");
-            raf.seek(inputStream.readLong());
-            long read = 0;
+    private void writeBytes(File file, DataInputStream inputStream) throws IOException {
+        try (RandomAccessFile raf = new RandomAccessFile(file, "rws")) {
+            long offset = inputStream.readLong();
+            raf.seek(offset);
+            long read = offset;
             long numRead = 0;
             long chunk = inputStream.readLong();
             byte[] fileBytes = new byte[(int) chunk];
@@ -67,9 +63,6 @@ public class FileSaverTask implements Runnable {
         } catch (SocketException ex) {
             counter.countDown();
             data.put(file.getAbsolutePath(), file.length());
-            ex.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -80,10 +73,15 @@ public class FileSaverTask implements Runnable {
             do {
                 poison = downloadFiles();
             } while (!poison);
-            counter.countDown();
-            socket.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            Client.saveData(data);
+        } finally {
+            counter.countDown();
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ import constants.Constants;
 import gui.ProgressBarTask;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
+import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,7 +38,7 @@ public class Client extends Service<Boolean> {
         this.counter = counter;
     }
 
-    public void saveData(ConcurrentHashMap<String, Long> data) {
+    public static void saveData(ConcurrentHashMap<String, Long> data) {
         try (ObjectOutputStream os = new ObjectOutputStream(new FileOutputStream("map.data"))) {
             os.writeObject(data);
         } catch (IOException e) {
@@ -83,9 +84,8 @@ public class Client extends Service<Boolean> {
                 filesCount = dataInputStream.readInt();
                 filesSize = dataInputStream.readLong();
                 progressBarTask = new ProgressBarTask(numberProgressBar, sizeProgressBar,
-                        new AtomicInteger(filesCount), new AtomicLong(filesSize));
+                        new AtomicInteger(filesCount), new AtomicLong(filesSize), data);
                 connect();
-//                new Client(filesCount, filesSize, numberProgressBar, sizeProgressBar, data, executor, counter);
                 return true;
             }
         };
@@ -116,28 +116,17 @@ public class Client extends Service<Boolean> {
     }
 
     public void stop() {
-        try {
-            log.info("stop");
-            log.info(data.toString());
-//            executor.shutdownNow();
-
-//            for (Future<Boolean> future :
-//                    futures) {
-//                future.cancel(true);
-//            }
-
-            log.info(executor.shutdownNow().toString());
-//            if (!executor.isTerminated()) {
-//                executor.shutdownNow();
-//            }
-            counter.await();
-//        try {
-//            throw new SocketException();
-//        } catch (SocketException e) {
-            saveData(data);
-//        }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if (progressBarTask.isDone()) {
+            new File("map.data").delete();
+        } else {
+            try {
+                executor.shutdownNow();
+                counter.await();
+                saveData(data);
+                cancel();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

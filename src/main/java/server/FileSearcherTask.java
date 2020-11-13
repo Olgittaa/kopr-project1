@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.RecursiveTask;
 
@@ -36,8 +37,8 @@ public class FileSearcherTask extends RecursiveTask<Long> {
                 task.fork();
             } else {
                 fileBlockingQueue.add(file);
-                fileSize += file.length();
-            }
+                    fileSize += file.length();
+                }
         }
         for (FileSearcherTask task : listTasks) {
             fileSize += task.join();

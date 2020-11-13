@@ -53,12 +53,11 @@ public class MainWindowController {
     }
 
     public void onFinishButtonClick(MouseEvent mouseEvent) {
+        clientManager.stop();
         System.exit(0);
     }
 
     public void onPauseButtonClick(MouseEvent mouseEvent) {
-        log.info("pause");
         clientManager.stop();
-
     }
 }

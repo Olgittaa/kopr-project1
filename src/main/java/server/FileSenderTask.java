@@ -1,5 +1,6 @@
 package server;
 
+import client.Client;
 import constants.Constants;
 import lombok.extern.slf4j.Slf4j;
 
@@ -77,21 +78,21 @@ public class FileSenderTask implements Runnable {
             }
             writeBytes(len, offset);
         } catch (IOException e) {
-            e.printStackTrace();
+
         }
     }
 
     private void writeBytes(long len, long offset) throws IOException {
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             raf.seek(offset);
-            log.info(fileBlockingQueue.size() + " sendfile " + socket.getPort() + " " + file.getAbsolutePath());
+            log.info(fileBlockingQueue.size() + " sendfile " + socket.getPort() + " " + file.getAbsolutePath() + " " + (len - offset));
             long read = offset;
             int numRead = 0;
             outputStream.writeLong(offset);
             long chunk = Constants.CHUNK_SIZE;
             byte[] fileBytes = new byte[Constants.CHUNK_SIZE];
-            if (len < Constants.CHUNK_SIZE) {
-                chunk = len;
+            if (len - offset < Constants.CHUNK_SIZE) {
+                chunk = len - offset;
                 fileBytes = new byte[(int) chunk];
             }
             outputStream.writeLong(chunk);
