@@ -37,13 +37,13 @@ public class Server {
 
                 String action = dataInputStream.readUTF();
                 log.info(action);
-
+                int count = 0;
                 if (action.equals("CONTINUE")) {
                     data = (ConcurrentHashMap<String, Long>) dataInputStream.readObject();
                 }
                 getLists(new File(Constants.SOURCE_DIRECTORY), data);
                 sendDataForBar();
-                exetuteTasks(data);
+                exetuteTasks(data, count);
                 managerSocket.close();
             }
         } catch (IOException | ClassNotFoundException e) {
@@ -78,7 +78,7 @@ public class Server {
         }
     }
 
-    public void exetuteTasks(ConcurrentHashMap<String, Long> data) {
+    public void exetuteTasks(ConcurrentHashMap<String, Long> data, int count) {
         try {
             ServerSocket serverSocket = new ServerSocket(Constants.SERVER_PORT);
             ExecutorService executor = Executors.newFixedThreadPool(4);

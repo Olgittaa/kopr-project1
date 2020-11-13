@@ -4,7 +4,6 @@ import constants.Constants;
 import gui.ProgressBarTask;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import javafx.scene.control.Button;
 import javafx.scene.control.ProgressBar;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,10 +28,12 @@ public class Client extends Service<Boolean> {
     private ObjectOutputStream dataOutputStream;
     private int filesCount;
     private long filesSize;
+    private final int count;
 
-    public Client(ProgressBar numberProgressBar, ProgressBar sizeProgressBar, CountDownLatch counter) {
+    public Client(ProgressBar numberProgressBar, ProgressBar sizeProgressBar, CountDownLatch counter, int count) {
+        this.count = count;
         this.data = readData();
-        this.executor = Executors.newFixedThreadPool(Constants.SOCKETS_COUNT);
+        this.executor = Executors.newFixedThreadPool(count);
         this.numberProgressBar = numberProgressBar;
         this.sizeProgressBar = sizeProgressBar;
         this.counter = counter;
@@ -80,6 +81,7 @@ public class Client extends Service<Boolean> {
                     log.info(data.toString());
                     dataOutputStream.writeObject(data);
                 }
+//                dataOutputStream.writeInt(count);
                 dataOutputStream.flush();
                 filesCount = dataInputStream.readInt();
                 filesSize = dataInputStream.readLong();
@@ -102,7 +104,7 @@ public class Client extends Service<Boolean> {
     }
 
     public void connect() {
-        for (int i = 0; i < Constants.SOCKETS_COUNT; i++) {
+        for (int i = 0; i < count; i++) {
             try {
                 Socket socket = new Socket(Constants.SERVER_HOST, Constants.SERVER_PORT);
                 FileSaverTask task = new FileSaverTask(socket,

@@ -59,7 +59,7 @@ public class FileSaverTask implements Runnable {
                 progressBarTask.updateSizeBar(numRead);
                 data.put(file.getAbsolutePath(), read);
             }
-            log.info("recieve " + file.getAbsolutePath());
+            log.info("receive " + file.getAbsolutePath());
         } catch (SocketException ex) {
             counter.countDown();
             data.put(file.getAbsolutePath(), file.length());

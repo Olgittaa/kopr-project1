@@ -10,9 +10,4 @@ public class Constants {
     public static final String DESTINATION_DIRECTORY = "/Users/olga_charna/Documents/Учеба/III.Z./kopr/to";
     public static final File POISON_PILL = new File("poison.pill");
     public static final int CHUNK_SIZE = 1024;
-    public static int SOCKETS_COUNT;
-
-    public static void setSocketsCount(int count) {
-        SOCKETS_COUNT = count;
-    }
 }

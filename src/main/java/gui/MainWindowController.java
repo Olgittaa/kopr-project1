@@ -46,9 +46,8 @@ public class MainWindowController {
     }
 
     public void onStartButtonClick(MouseEvent mouseEvent) {
-        Constants.setSocketsCount(tcpSpinner.getValue());
-        counter = new CountDownLatch(Constants.SOCKETS_COUNT);
-        clientManager = new Client(numberProgressBar, weigthProgressBar, counter);
+        counter = new CountDownLatch(tcpSpinner.getValue());
+        clientManager = new Client(numberProgressBar, weigthProgressBar, counter, tcpSpinner.getValue());
         clientManager.start();
     }
 
