@@ -11,44 +11,44 @@ import java.util.concurrent.atomic.AtomicLong;
 public class ProgressBarTask {
     private final ProgressBar numberBar;
     private final ProgressBar sizeBar;
-    private final AtomicInteger files;
-    private final AtomicInteger sendedFiles = new AtomicInteger(0);
-    private final AtomicLong sendedSize = new AtomicLong(0);
+    private final AtomicInteger numberOfFiles;
+    private final AtomicInteger sentFiles = new AtomicInteger(0);
+    private final AtomicLong sentSize = new AtomicLong(0);
     private final ConcurrentHashMap<String, Long> data;
-    private final AtomicLong fileSize;
+    private final AtomicLong totalSize;
 
     public ProgressBarTask(ProgressBar numberBar, ProgressBar sizeBar,
-                           AtomicInteger files, AtomicLong fileSize,
+                           AtomicInteger numberOfFiles, AtomicLong totalSize,
                            ConcurrentHashMap<String, Long> data) {
-        this.files = files;
-        this.fileSize = fileSize;
+        this.numberOfFiles = numberOfFiles;
+        this.totalSize = totalSize;
         this.sizeBar = sizeBar;
         this.numberBar = numberBar;
         this.data = data;
-        getSendedSize();
+        getSentSize();
     }
 
     public synchronized void updateNumberBar() {
-        int file = sendedFiles.incrementAndGet();
-        numberBar.setProgress((double) file / files.get());
+        int file = sentFiles.incrementAndGet();
+        numberBar.setProgress((double) file / numberOfFiles.get());
     }
 
-    public void getSendedSize() {
-        sendedSize.set(0);
+    public void getSentSize() {
+        sentSize.set(0);
         if (data != null && data.size() > 0) {
             for (Long value : data.values()) {
-                sendedSize.addAndGet(value);
+                sentSize.addAndGet(value);
             }
         }
     }
 
     public boolean isDone() {
-        return sendedSize.get() == fileSize.get();
+        return sentSize.get() == totalSize.get();
     }
 
     public synchronized void updateSizeBar(long size) {
-        sendedSize.getAndAdd(size);
-        sizeBar.setProgress((double) sendedSize.get() / fileSize.get());
+        sentSize.getAndAdd(size);
+        sizeBar.setProgress((double) sentSize.get() / totalSize.get());
     }
 
 }

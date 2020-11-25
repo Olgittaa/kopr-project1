@@ -1,6 +1,5 @@
 package server;
 
-import client.Client;
 import constants.Constants;
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,15 +16,15 @@ import java.util.concurrent.Executor;
 @Slf4j
 public class FileSenderTask implements Runnable {
 
-    private final Socket socket;
-    private final DataOutputStream outputStream;
     private final BlockingQueue<File> fileBlockingQueue;
-    private final Executor executor;
     private final ConcurrentHashMap<String, Long> data;
+    private final DataOutputStream dos;
+    private final Executor executor;
+    private final Socket socket;
     private File file;
 
-    public FileSenderTask(Executor executor, Socket socket, DataOutputStream outputStream, BlockingQueue<File> fileBlockingQueue, ConcurrentHashMap<String, Long> data) {
-        this.outputStream = outputStream;
+    public FileSenderTask(Executor executor, Socket socket, DataOutputStream dos, BlockingQueue<File> fileBlockingQueue, ConcurrentHashMap<String, Long> data) {
+        this.dos = dos;
         this.socket = socket;
         this.executor = executor;
         this.fileBlockingQueue = fileBlockingQueue;
@@ -41,7 +40,7 @@ public class FileSenderTask implements Runnable {
     public void run() {
         sendFile();
         if (fileBlockingQueue.size() > 0) {
-            executor.execute(new FileSenderTask(executor, socket, outputStream, fileBlockingQueue, data));
+            executor.execute(new FileSenderTask(executor, socket, dos, fileBlockingQueue, data));
         } else {
             sendPoison();
         }
@@ -55,7 +54,7 @@ public class FileSenderTask implements Runnable {
     public void sendPoison() {
         try {
             log.info("sendpoison " + socket.getPort() + " " + Constants.POISON_PILL);
-            outputStream.writeUTF(Constants.POISON_PILL.getName());
+            dos.writeUTF(Constants.POISON_PILL.getName());
             socket.close();
         } catch (SocketException e1) {
             System.err.println(e1.getMessage() + " " + socket.getPort());
@@ -68,7 +67,7 @@ public class FileSenderTask implements Runnable {
     public void sendFile() {
         try {
             String destination = getDestination();
-            outputStream.writeUTF(destination);
+            dos.writeUTF(destination);
             Long offset;
             long len = (int) file.length();
             if (data == null || !data.containsKey(destination)) {
@@ -77,7 +76,7 @@ public class FileSenderTask implements Runnable {
                 offset = data.get(destination);
             }
             writeBytes(len, offset);
-        } catch (IOException e) {
+        } catch (IOException ignored) {
 
         }
     }
@@ -88,18 +87,18 @@ public class FileSenderTask implements Runnable {
             log.info(fileBlockingQueue.size() + " sendfile " + socket.getPort() + " " + file.getAbsolutePath() + " " + (len - offset));
             long read = offset;
             int numRead = 0;
-            outputStream.writeLong(offset);
+            dos.writeLong(offset);
             long chunk = Constants.CHUNK_SIZE;
             byte[] fileBytes = new byte[Constants.CHUNK_SIZE];
             if (len - offset < Constants.CHUNK_SIZE) {
                 chunk = len - offset;
                 fileBytes = new byte[(int) chunk];
             }
-            outputStream.writeLong(chunk);
+            dos.writeLong(chunk);
             while (read < len &&
                     (numRead = raf.read(fileBytes, 0, (int) chunk)) >= 0) {
                 read = read + numRead;
-                outputStream.write(fileBytes);
+                dos.write(fileBytes);
                 if (len - read < Constants.CHUNK_SIZE) {
                     chunk = len - read;
                     fileBytes = new byte[(int) chunk];
@@ -107,8 +106,8 @@ public class FileSenderTask implements Runnable {
                     chunk = Constants.CHUNK_SIZE;
                     fileBytes = new byte[Constants.CHUNK_SIZE];
                 }
-                outputStream.writeLong(chunk);
-                outputStream.flush();
+                dos.writeLong(chunk);
+                dos.flush();
             }
         }
     }

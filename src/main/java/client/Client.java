@@ -4,7 +4,6 @@ import constants.Constants;
 import gui.ProgressBarTask;
 import javafx.concurrent.Service;
 import javafx.concurrent.Task;
-import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,22 +22,22 @@ public class Client extends Service<Boolean> {
     private final ProgressBar numberProgressBar;
     private final ProgressBar sizeProgressBar;
     private final ConcurrentHashMap<String, Long> data;
-    private final CountDownLatch counter;
+    private final CountDownLatch gate;
     private final int count;
     private ProgressBarTask progressBarTask;
-    private DataInputStream dataInputStream;
-    private ObjectOutputStream dataOutputStream;
+    private DataInputStream dis;
+    private ObjectOutputStream oos;
     private int filesCount;
     private long filesSize;
 
-    public Client(ProgressBar numberProgressBar, ProgressBar sizeProgressBar,
-                  CountDownLatch counter, int count) {
+    public Client(ProgressBar numberProgressBar, ProgressBar sizeProgressBar, int count) {
         this.count = count;
-        this.data = readData();
-        this.executor = Executors.newFixedThreadPool(count);
         this.numberProgressBar = numberProgressBar;
         this.sizeProgressBar = sizeProgressBar;
-        this.counter = counter;
+
+        this.data = readData();
+        this.executor = Executors.newFixedThreadPool(count);
+        this.gate = new CountDownLatch(count);
     }
 
     public static void saveData(ConcurrentHashMap<String, Long> data) {
@@ -49,44 +48,29 @@ public class Client extends Service<Boolean> {
         }
     }
 
-    private ConcurrentHashMap<String, Long> readData() {
-        ConcurrentHashMap<String, Long> data = new ConcurrentHashMap<>();
-        File file = new File("map.data");
-        if (file.exists()) {
-            try {
-                ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream("map.data"));
-                data = (ConcurrentHashMap<String, Long>) objectInputStream.readObject();
-                objectInputStream.close();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-        file.delete();
-        return data;
-    }
-
     @Override
     protected Task<Boolean> createTask() {
-        return new Task<Boolean>() {
-
+        return new Task<>() {
             @Override
-            protected Boolean call() throws Exception {
+            protected Boolean call(){
                 doConnect();
-                if (data == null || data.size() == 0) {
-                    dataOutputStream.writeUTF("START");
-                } else {
-                    dataOutputStream.writeUTF("CONTINUE");
-                    log.info(data.toString());
-                    dataOutputStream.writeObject(data);
+
+                try {
+                    if (data == null || data.size() == 0) {
+                        oos.writeUTF("START");
+                    } else {
+                        oos.writeUTF("CONTINUE");
+                        oos.writeObject(data);
+                    }
+                    oos.writeInt(count);
+                    oos.flush();
+
+                    filesCount = dis.readInt();
+                    filesSize = dis.readLong();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                dataOutputStream.writeInt(count);
-                dataOutputStream.flush();
-                filesCount = dataInputStream.readInt();
-                filesSize = dataInputStream.readLong();
+
                 progressBarTask = new ProgressBarTask(numberProgressBar, sizeProgressBar,
                         new AtomicInteger(filesCount), new AtomicLong(filesSize), data);
                 connect();
@@ -98,8 +82,8 @@ public class Client extends Service<Boolean> {
     public void doConnect() {
         try {
             Socket managerSocket = new Socket(Constants.SERVER_HOST, Constants.MANAGER_PORT);
-            dataOutputStream = new ObjectOutputStream(managerSocket.getOutputStream());
-            dataInputStream = new DataInputStream(managerSocket.getInputStream());
+            oos = new ObjectOutputStream(managerSocket.getOutputStream());
+            dis = new DataInputStream(managerSocket.getInputStream());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -110,7 +94,7 @@ public class Client extends Service<Boolean> {
             try {
                 Socket socket = new Socket(Constants.SERVER_HOST, Constants.SERVER_PORT);
                 FileSaverTask task = new FileSaverTask(socket,
-                        new DataInputStream(socket.getInputStream()), progressBarTask, data, counter);
+                        new DataInputStream(socket.getInputStream()), progressBarTask, data, gate);
                 executor.execute(task);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -125,12 +109,28 @@ public class Client extends Service<Boolean> {
         } else {
             try {
                 executor.shutdownNow();
-                counter.await();
+                gate.await();
                 saveData(data);
                 cancel();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    private ConcurrentHashMap<String, Long> readData() {
+        ConcurrentHashMap<String, Long> data = new ConcurrentHashMap<>();
+        File file = new File("map.data");
+        if (file.exists()) {
+            try {
+                ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream("map.data"));
+                data = (ConcurrentHashMap<String, Long>) objectInputStream.readObject();
+                objectInputStream.close();
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        file.delete();
+        return data;
     }
 }

@@ -15,53 +15,56 @@ import java.util.concurrent.CountDownLatch;
 
 @Slf4j
 public class FileSaverTask implements Runnable {
-    private final DataInputStream inputStream;
+    private final DataInputStream dis;
     private final Socket socket;
     private final ProgressBarTask progressBarTask;
     private final ConcurrentHashMap<String, Long> data;
-    private final CountDownLatch counter;
+    private final CountDownLatch gate;
 
-    public FileSaverTask(Socket socket, DataInputStream inputStream, ProgressBarTask progressBarTask, ConcurrentHashMap<String, Long> data, CountDownLatch counter) {
+    public FileSaverTask(Socket socket, DataInputStream dis,
+                         ProgressBarTask progressBarTask,
+                         ConcurrentHashMap<String, Long> data,
+                         CountDownLatch gate) {
         this.socket = socket;
-        this.inputStream = inputStream;
+        this.dis = dis;
         this.progressBarTask = progressBarTask;
         this.data = data;
-        this.counter = counter;
+        this.gate = gate;
     }
 
     public boolean downloadFiles() throws IOException {
-        String s = inputStream.readUTF();
-        if (s.equals(Constants.POISON_PILL.getName())) {
+        String fileName = dis.readUTF();
+        if (fileName.equals(Constants.POISON_PILL.getName())) {
             log.info("poison.pill");
             return true;
         }
-        File file = new File(s);
+        File file = new File(fileName);
         new File(String.valueOf(file.getParentFile())).mkdirs();
-        writeBytes(file, inputStream);
+        writeBytes(file, dis);
         progressBarTask.updateNumberBar();
         return false;
     }
 
-    private void writeBytes(File file, DataInputStream inputStream) throws IOException {
+    private void writeBytes(File file, DataInputStream dis) throws IOException {
         try (RandomAccessFile raf = new RandomAccessFile(file, "rws")) {
-            long offset = inputStream.readLong();
+            long offset = dis.readLong();
             raf.seek(offset);
-            long read = offset;
-            long numRead = 0;
-            long chunk = inputStream.readLong();
+            long totalRead = offset;
+            long chunk = dis.readLong();
             byte[] fileBytes = new byte[(int) chunk];
+            long read;
             while (!Thread.currentThread().isInterrupted() &&
-                    chunk > 0 && (numRead = inputStream.readNBytes(fileBytes, 0, (int) chunk)) > 0) {
-                read = read + numRead;
+                    chunk > 0 && (read = dis.readNBytes(fileBytes, 0, (int) chunk)) > 0) {
+                totalRead = totalRead + read;
                 raf.write(fileBytes);
-                chunk = inputStream.readLong();
+                chunk = dis.readLong();
                 fileBytes = new byte[(int) chunk];
-                progressBarTask.updateSizeBar(numRead);
-                data.put(file.getAbsolutePath(), read);
+                progressBarTask.updateSizeBar(read);
+                data.put(file.getAbsolutePath(), totalRead);
             }
             log.info("receive " + file.getAbsolutePath());
         } catch (SocketException ex) {
-            counter.countDown();
+            gate.countDown();
             data.put(file.getAbsolutePath(), file.length());
         }
     }
@@ -69,14 +72,14 @@ public class FileSaverTask implements Runnable {
     @Override
     public void run() {
         try {
-            boolean poison = false;
+            boolean poison;
             do {
                 poison = downloadFiles();
             } while (!poison);
         } catch (IOException e) {
             Client.saveData(data);
         } finally {
-            counter.countDown();
+            gate.countDown();
             try {
                 socket.close();
             } catch (IOException e) {

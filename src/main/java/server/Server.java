@@ -14,9 +14,9 @@ import java.util.concurrent.*;
 @Slf4j
 public class Server {
     private BlockingQueue<File> fileBlockingQueue;
+    private ServerSocket serverSocket;
+    private DataOutputStream dos;
     private long filesSize;
-    private ObjectInputStream dataInputStream;
-    private DataOutputStream dataOutputStream;
 
     public Server() {
         initConnection();
@@ -30,20 +30,19 @@ public class Server {
         try (ServerSocket serverSocket = new ServerSocket(Constants.MANAGER_PORT)) {
             while (true) {
                 Socket managerSocket = serverSocket.accept();
-                dataInputStream = new ObjectInputStream(managerSocket.getInputStream());
-                dataOutputStream = new DataOutputStream(managerSocket.getOutputStream());
+                ObjectInputStream ois = new ObjectInputStream(managerSocket.getInputStream());
+                dos = new DataOutputStream(managerSocket.getOutputStream());
                 ConcurrentHashMap<String, Long> data = null;
 
-                String action = dataInputStream.readUTF();
+                String action = ois.readUTF();
                 log.info(action);
-                int count = dataInputStream.readInt();
                 if (action.equals("CONTINUE")) {
-                    data = (ConcurrentHashMap<String, Long>) dataInputStream.readObject();
+                    data = (ConcurrentHashMap<String, Long>) ois.readObject();
                 }
-                getLists(new File(Constants.SOURCE_DIRECTORY), data);
+                int count = ois.readInt();
+                getFileBlockingQueue(new File(Constants.SOURCE_DIRECTORY));
                 sendDataForBar();
-                exetuteTasks(data, count);
-                managerSocket.close();
+                executeTasks(data, count);
             }
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -52,14 +51,14 @@ public class Server {
 
     private void sendDataForBar() {
         try {
-            dataOutputStream.writeInt(fileBlockingQueue.size());
-            dataOutputStream.writeLong(filesSize);
+            dos.writeInt(fileBlockingQueue.size());
+            dos.writeLong(filesSize);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public void getLists(File rootDir, ConcurrentHashMap<String, Long> data) {
+    public void getFileBlockingQueue(File rootDir) {
         File[] files = rootDir.listFiles();
         fileBlockingQueue = new LinkedBlockingQueue<>();
         assert files != null;
@@ -77,14 +76,16 @@ public class Server {
         }
     }
 
-    public void exetuteTasks(ConcurrentHashMap<String, Long> data, int count) {
+    public void executeTasks(ConcurrentHashMap<String, Long> data, int count) {
         try {
-            ServerSocket serverSocket = new ServerSocket(Constants.SERVER_PORT);
+            if (serverSocket == null) {
+                serverSocket = new ServerSocket(Constants.SERVER_PORT);
+            }
             ExecutorService executor = Executors.newFixedThreadPool(count);
             for (int i = 0; i < count; i++) {
                 Socket socket = serverSocket.accept();
-                DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
-                FileSenderTask fileSenderTask = new FileSenderTask(executor, socket, dataOutputStream, fileBlockingQueue, data);
+                DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+                FileSenderTask fileSenderTask = new FileSenderTask(executor, socket, dos, fileBlockingQueue, data);
                 executor.execute(fileSenderTask);
             }
         } catch (IOException e) {

@@ -8,15 +8,15 @@ import javafx.stage.Stage;
 
 public class ClientGUI extends Application {
 
+    public static void main(String[] args) {
+        launch(args);
+    }
+
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(getClass().getResource("mainWindow.fxml"));
-        primaryStage.setTitle("DirCopy");
+        primaryStage.setTitle("Directory copying");
         primaryStage.setScene(new Scene(root));
         primaryStage.show();
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }
