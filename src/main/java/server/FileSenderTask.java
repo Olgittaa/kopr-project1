@@ -85,19 +85,22 @@ public class FileSenderTask implements Runnable {
         try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
             raf.seek(offset);
             log.info(fileBlockingQueue.size() + " sendfile " + socket.getPort() + " " + file.getAbsolutePath() + " " + (len - offset));
-            long read = offset;
-            int numRead = 0;
             dos.writeLong(offset);
+
             long chunk = Constants.CHUNK_SIZE;
             byte[] fileBytes = new byte[Constants.CHUNK_SIZE];
+            long totalRead = offset;
+            int read;
+
             if (len - offset < Constants.CHUNK_SIZE) {
                 chunk = len - offset;
                 fileBytes = new byte[(int) chunk];
             }
+
             dos.writeLong(chunk);
-            while (read < len &&
-                    (numRead = raf.read(fileBytes, 0, (int) chunk)) >= 0) {
-                read = read + numRead;
+            while (totalRead < len &&
+                    (read = raf.read(fileBytes, 0, (int) chunk)) >= 0) {
+                totalRead += read;
                 dos.write(fileBytes);
                 if (len - read < Constants.CHUNK_SIZE) {
                     chunk = len - read;

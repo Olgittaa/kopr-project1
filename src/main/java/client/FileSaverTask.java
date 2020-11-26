@@ -55,7 +55,7 @@ public class FileSaverTask implements Runnable {
             long read;
             while (!Thread.currentThread().isInterrupted() &&
                     chunk > 0 && (read = dis.readNBytes(fileBytes, 0, (int) chunk)) > 0) {
-                totalRead = totalRead + read;
+                totalRead += read;
                 raf.write(fileBytes);
                 chunk = dis.readLong();
                 fileBytes = new byte[(int) chunk];
